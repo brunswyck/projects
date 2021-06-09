@@ -1,23 +1,20 @@
 import pprint as pp
 import random
+import typing
 from utils.card import Card
 
 
 # todo: document random ranges https://www.delftstack.com/howto/python/random-integers-between-range-python/
-def shuffle_cards(deck_of_cards: Card):
-    old_deck_values = list(deck_of_cards.get_card_properties())
-    random.shuffle(old_deck_values)
-    pp.pprint(old_deck_values)
-    # use zip to put values back into dictionary
-    for x in range(0, 51):
-        print(x)
-    # shuffled_deck
-    # pp.pprint(dict(zip(deck_of_cards, old_deck_now_shuffled)))
+def shuffle_cards(deck_of_cards: list):
+    random.shuffle(deck_of_cards)
 
 
 def generate_card_instances():
-    card_properties = {"club": "black", "diamond": "red", "heart": "red", "spade": "black"}
-    cards = [Card]
+    card_properties = {"club": "black",
+                       "diamond": "red",
+                       "heart": "red",
+                       "spade": "black"}
+    cards = []  # how to initialize this as a list of Card without creating an instance?
     cards_in_game = {
         "ace": 1,
         "two": 2,
@@ -34,11 +31,19 @@ def generate_card_instances():
         "king": 10
     }
     card_number = 0
-    card_deck = {card_number: {"color": "", "composition": "", "name": "", "points": 0}}  # "black" "spade" "jack" 10
-    for card, points in cards_in_game.items():
-        for composition, color in card_properties.items():
-            card_deck[card_number] = {"color": color, "composition": composition, "name": card, "points": points}
-            # something going wrong here, the first card in the list = "class utils.card.Card" instead of black club ace 1
+    card_deck = {
+        card_number: {"color": "",          # "black" "spade" "jack" 10
+                      "composition": "",
+                      "name": "",
+                      "points": 0
+                      }
+    }
+    for card, points in cards_in_game.items():    # for every card: "ace" with points: 1 you have ----
+        for composition, color in card_properties.items():  # ----> 4 compositions of which 2 are black & 2 are red
+            card_deck[card_number] = {"color": color,
+                                      "composition": composition,  # filling this card_deck list with dictionaries
+                                      "name": card,
+                                      "points": points}
             cards.append(Card(color, composition, card, points))
             card_number += 1
     return cards
@@ -46,10 +51,9 @@ def generate_card_instances():
 
 if __name__ == '__main__':
     all_cards = generate_card_instances()
-    print(type(all_cards[0]))  # todo: fix this
-    print(type(all_cards[1]))  # this one is properly filled but should be at 0
-
-
-    # for card in all_cards:
-    #     print(card.get_card_properties())
-    # shuffle_cards(all_cards)
+    print(all_cards)
+    """ [[black club ace: 1], [red diamond ace: 1], [red heart ace: 1], [black spade ace: 1], ... """
+    shuffle_cards(all_cards)
+    print(all_cards)
+    """ [[red heart three: 3], [black club ten: 10], [black spade queen: 10], [red heart ten: 10], """
+    # pp.pprint([card.get_card_properties for card in all_cards])

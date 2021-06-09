@@ -10,11 +10,11 @@ class Card:
         return f"new card: {self._color} {self._composition} {self._name} {self._points} was created"
 
     def __str__(self):
-        return f'{self._color} {self._composition} {self._name}: {self._points}'
+        return f'[{self._color} {self._composition} {self._name}: {self._points}]'
 
     def __repr__(self):
-        return f'{self._color} {self._composition} {self._name}: {self._points}'
+        return f'[{self._color} {self._composition} {self._name}: {self._points}]'
 
     @property
     def get_card_properties(self):
-        return [self._color, self._composition, self._name, self._points]
+        return self._color, self._composition, self._name, self._points
