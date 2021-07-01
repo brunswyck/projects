@@ -1,8 +1,4 @@
-# make sure to install these packages before running:
-# pip install pandas
 # pip install sodapy
-
-
 import argparse
 import pandas as pd
 from sodapy import Socrata
