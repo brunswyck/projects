@@ -63,9 +63,10 @@ class DfOps:
             self.replace_value_in_column(column, 0, False)
             self.replace_value_in_column(column, 1, True)
 
-    def change_x_y_to_false_true(self, columns_list, x: str = "no", y: str = "yes"):
-        for column in columns_list:
-            self.replace_nan_in_column(column, x)
+    def change_x_y_to_false_true(self, columns, x: str = "no", y: str = "yes"):
+        columns = self.turn_string_into_a_list(columns)
+        for column in columns:
+            self.replace_nan_in_column(column, x) # works fine
             self.replace_value_in_column(column, x, False)
             self.replace_value_in_column(column, y, True)
 
@@ -76,22 +77,36 @@ class DfOps:
     def convert_cols_to_datatype(self, columns, set_datatype_to: str):
         for col in columns:
             self.df[col] = self.df[col].astype(set_datatype_to)
+            print(type(self.df[col]))  # todo: converted to str but not at the end it due to nan?
 
     # fillna and convert to datatype
-    def convert_cols_to_datatype_and_do_fillna(self, columns, fill_na_value, set_datatype_to=None):
+    def convert_columns_to_datatype_and_do_fillna(self, columns, fill_na_value, set_datatype_to=None):
         # do fillna AND convert to datatype
+        if set_datatype_to == "str":
+            set_datatype_to = "|S"  # sets to string at max length of string value in column
         if fill_na_value and set_datatype_to:
-            for index, column in enumerate(columns):
+            for column in columns:
                 self.df[column] = self.df[column].fillna(fill_na_value).astype(set_datatype_to)
 
+    @staticmethod
+    def turn_string_into_a_list(cols):
+        if not isinstance(cols, list):
+            return [cols]
+        else:
+            return cols
+
     # do fillna only
-    def apply_fillna_to_column(self, column, replace_nan_value):
-        self.df[column] = self.df[column].fillna(replace_nan_value)
+    def apply_fillna_to_columns(self, columns, replace_nan_value):
+        columns = self.turn_string_into_a_list(columns)
+        for col in columns:
+            self.df[col] = self.df[col].fillna(replace_nan_value)
+
+    def replace_string_in_column(self, column, str_to_replace, replacement_value):
+        self.df[column] = self.df[column].replace(str_to_replace, replacement_value)
 
     def replace_nan_in_column(self, columns, replace_nan_value):
-        if not isinstance(columns, list):
-            list(columns)
-        self.apply_fillna_to_column(columns, replace_nan_value)
+        columns = self.turn_string_into_a_list(columns)
+        self.apply_fillna_to_columns(columns, replace_nan_value)
 
     # https://pandas.pydata.org/pandas-docs/stable/user_guide/categorical.html
     @staticmethod
@@ -107,7 +122,7 @@ class DfOps:
             self.df[column] = self.df[column].astype(cat_type)
 
     def apply_mean_to_column(self, column):
-        self.apply_fillna_to_column(column, self.df[column].mean())
+        self.apply_fillna_to_columns(column, self.df[column].mean())
 
     def write_to_csv(self, file_path):
         self.df.to_csv(file_path)
@@ -128,6 +143,9 @@ class DfOps:
     # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.sort_index.html
     def sort_index(self, ascending: bool = True):
         self.df.sort_index(ascending=ascending)
+
+    def drop_duplicate_rows(self):
+        self.df.drop_duplicates()
 
     # https://stackoverflow.com/questions/23797491/parse-dates-in-pandas
     # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.to_datetime.html
@@ -161,9 +179,19 @@ class DfOps:
         for column in self.df:
             column_with_nan_count_dictionary[column] = self.get_nan_count_column(column)
         if just_print:
+            print("-----------overview of the nan count -------------")
             pp(column_with_nan_count_dictionary)
+            print("--------- END overview of the nan count -----------")
         else:
             return column_with_nan_count_dictionary
+
+    def get_unique_values_for_columns(self, columns):
+        column_with_unique_count_dictionary = dict()
+        columns = self.turn_string_into_a_list(columns)
+        if isinstance(columns, list):
+            for column in columns:
+                column_with_unique_count_dictionary[column] = self.get_unique_values_of_column(column)
+            pp(column_with_unique_count_dictionary)
 
     def get_overview_unique_count(self, just_print=False):
         column_with_unique_count_dictionary = dict()
@@ -194,6 +222,9 @@ class DfOps:
 
     def convert_dtypes(self):
         self.df.convert_dtypes()
+
+    def strip_leading_trailing_whitespace(self):
+        self.df = self.df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
 
     # just a test
     # def parse_point_data(self, row):
