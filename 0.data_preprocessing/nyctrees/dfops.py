@@ -2,19 +2,31 @@ import pandas as pd
 import numpy as np
 from pprint import pprint as pp
 # conda install -c conda-forge geopandas
-import geopandas as gpd
+# import geopandas as gpd
 from pathlib import PurePath
 # conda install multipledispatch
 # from multipledispatch import dispatch
-from shapely.geometry import Point
+# from shapely.geometry import Point
+
 
 class DfOps:
 
     def __init__(self, dataframe, max_cols, cons_width=640):
         self.df = dataframe
-        self.df.sort_index()
         self.initiate_pandas(max_cols, cons_width)
         self.initiate_numpy(cons_width)
+
+    # https://www.learnbyexample.org/python-properties/
+    @property
+    def df(self):
+        # print("getter method called")
+        return self.__df
+
+    @df.setter
+    def df(self, value):
+        if not isinstance(value, pd.DataFrame):
+            raise TypeError("expected a dataframe")
+        self.__df = value
 
     @staticmethod
     def initiate_pandas(max_cols, cons_width):
@@ -22,14 +34,18 @@ class DfOps:
         pd.set_option('display.max_rows', None)
         pd.set_option('display.width', cons_width)  # make output in console wider
 
+    def sort_df(self):
+        self.df.sort_index
+
     @staticmethod
     def initiate_numpy(console_width=640):
         # https://numpy.org/doc/stable/reference/generated/numpy.set_printoptions.html
         np.set_printoptions(linewidth=console_width)
 
     # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html
+    # no self as instance isn't created yet when importing csv
     @staticmethod
-    def import_data_from_csv(file_path: PurePath, sep: str = ",", low_memory: bool = True, verbose: bool = True, parse_dates: bool = False):
+    def import_data_from_csv(file_path: PurePath, sep: str = ",", low_memory: bool = True, verbose: bool = True):
         df = pd.read_csv(file_path, sep=sep, low_memory=low_memory, verbose=verbose)
         if isinstance(df, pd.DataFrame):
             return df
@@ -52,7 +68,6 @@ class DfOps:
             self.replace_nan_in_column(column, x)
             self.replace_value_in_column(column, x, False)
             self.replace_value_in_column(column, y, True)
-
 
     def count_nans_in_column(self, column: str) -> int:
         return self.df[column].isna().sum()
@@ -78,13 +93,18 @@ class DfOps:
             list(columns)
         self.apply_fillna_to_column(columns, replace_nan_value)
 
-    # https://hashtaggeeks.com/posts/pandas-categorical-data.html
+    # https://pandas.pydata.org/pandas-docs/stable/user_guide/categorical.html
     @staticmethod
     def create_category(category_list):
         try:
             return pd.CategoricalDtype(categories=category_list)
         except Exception as err:
             print(f"something went wrong when creating categorical: {err}")
+
+    def create_categories_from_dict(self, cat_dict: dict):
+        for column, cat_list in cat_dict.items():
+            cat_type = self.create_category(cat_list)
+            self.df[column] = self.df[column].astype(cat_type)
 
     def apply_mean_to_column(self, column):
         self.apply_fillna_to_column(column, self.df[column].mean())
@@ -93,7 +113,7 @@ class DfOps:
         self.df.to_csv(file_path)
 
     def count_nans_in_df(self):
-        return self.df.isna().sum()
+        return self.df.isna().sum
 
     def print_datatypes(self):
         print("------------checking column datatypes------------>")
@@ -107,12 +127,12 @@ class DfOps:
 
     # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.sort_index.html
     def sort_index(self, ascending: bool = True):
-        self.df.sort_index
+        self.df.sort_index(ascending=ascending)
 
     # https://stackoverflow.com/questions/23797491/parse-dates-in-pandas
     # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.to_datetime.html
-    def parse_date_column(self, column: str, format='%d/%m/%Y'):
-        self.df[column] = pd.to_datetime(self.df[column], format=format)
+    def parse_date_column(self, column: str, date_format='%d/%m/%Y'):
+        self.df[column] = pd.to_datetime(self.df[column], format=date_format)
 
     def get_unique_values_of_column(self, column) -> np.ndarray:
         if isinstance(self.df[column], pd.Series):
@@ -172,17 +192,17 @@ class DfOps:
     def drop_columns(self, columns: [str]):
         self.df = self.df.drop(columns=columns)
 
-    def convert_column_with_arrays_to_lists(self, list_of_columns: list):
-        for column in list_of_columns:
-            self.df[column].values.tolist()
+    def convert_dtypes(self):
+        self.df.convert_dtypes()
 
     # just a test
-    def parse_point_data(self, row):
-        geoblocks = row.split()  # split Point (Long, Lat) up into Point () + Longitude + Latitude
-        long = float(geoblocks[1].lstrip('('))  # longitude
-        lat = float(geoblocks[2].rstrip(')'))   # latitude
-        point = Point(long, lat)
-        return point
+    # def parse_point_data(self, row):
+    #     geoblocks = row.split()  # split Point (Long, Lat) up into Point () + Longitude + Latitude
+    #     long = float(geoblocks[1].lstrip('('))  # longitude
+    #     lat = float(geoblocks[2].rstrip(')'))   # latitude
+    #     point = Point(long, lat)
+    #     return point
+
 
 # import matplotlib.pyplot as plt
 # import seaborn as sns
