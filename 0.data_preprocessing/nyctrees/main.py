@@ -2,7 +2,7 @@ from dfops import DfOps as Dops
 from pathlib import PurePath
 
 file_location = PurePath("data", "data_100000.csv")
-df_trees = Dops.import_data_from_csv(file_path=file_location, low_memory=False)
+df_trees = Dops.import_data_from_csv(fp=file_location, low_memory=False)
 
 dop_trees = Dops(df_trees, 40, 1080)
 print(dop_trees.df.shape)  # (100000, 42)
