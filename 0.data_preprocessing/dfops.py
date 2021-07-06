@@ -241,6 +241,15 @@ class DfOps:
     def strip_substring_in_column(self, col: str, replace_this: str, with_that: str = ''):
         self.df[col] = self.df[col].replace(replace_this, with_that)
 
+    def drop_rows_when_these_columns_are_nan(self, column_list):
+        self.df = self.df.dropna(subset=column_list)
+
+    def dummify_columns(self, columns, prefix: str):
+        columns = self.turn_string_into_a_list(columns)
+        for col in columns:
+            print(pd.get_dummies(self.df[col], prefix=prefix))
+
+
     # just a test
     # def parse_point_data(self, row):
     #     geoblocks = row.split()  # split Point (Long, Lat) up into Point () + Longitude + Latitude
